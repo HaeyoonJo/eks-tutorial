@@ -1,5 +1,7 @@
 # EKS Tutorial
 
+> ALL resources was destroyed after short hands-on
+
 Simply I could provision EKS and service using `eksctl`. At this stage, I will create an EKS cluster and explore the provisioned resources.
 
 
@@ -65,4 +67,35 @@ kubectl get services
 NAME               TYPE           CLUSTER-IP       EXTERNAL-IP                                                                 PORT(S)        AGE
 kubernetes         ClusterIP      10.100.0.1       <none>                                                                      443/TCP        28m
 my-nginx-service   LoadBalancer   10.100.223.178   a305745700b094883bfe2281b974429a-411902197.eu-central-1.elb.amazonaws.com   80:30503/TCP   13s
+```
+
+```
+curl -v a305745700b094883bfe2281b974429a-411902197.eu-central-1.elb.amazonaws.com
+*   Trying 3.68.131.166:80...
+* TCP_NODELAY set
+* Connected to a305745700b094883bfe2281b974429a-411902197.eu-central-1.elb.amazonaws.com (3.68.131.166) port 80 (#0)
+> GET / HTTP/1.1
+> Host: a305745700b094883bfe2281b974429a-411902197.eu-central-1.elb.amazonaws.com
+> User-Agent: curl/7.68.0
+> Accept: */*
+> 
+* Mark bundle as not supporting multiuse
+< HTTP/1.1 200 OK
+< Server: nginx/1.23.0
+< Date: Sun, 17 Jul 2022 17:49:06 GMT
+< Content-Type: text/html
+< Content-Length: 615
+< Last-Modified: Tue, 21 Jun 2022 14:25:37 GMT
+< Connection: keep-alive
+< ETag: "62b1d4e1-267"
+< Accept-Ranges: bytes
+< 
+<!DOCTYPE html>
+<html>
+<head>
+...
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+* Connection #0 to host a305745700b094883bfe2281b974429a-411902197.eu-central-1.elb.amazonaws.com left intact
 ```
