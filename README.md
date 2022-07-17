@@ -1,35 +1,68 @@
 # EKS Tutorial
 
-> Opened Jira for EKS Handson https://haeyoon-devops.atlassian.net/browse/DEVOPSS-61?atlOrigin=eyJpIjoiZmU2ZjliYTg4YTdjNGIxMGI4Yjg1ZTA2MTU4MTVjNGMiLCJwIjoiaiJ9
+Simply I could provision EKS and service using `eksctl`. At this stage, I will create an EKS cluster and explore the provisioned resources.
 
 
-> Note that EKS access permission via CLI is only given to the user created its EKS Cluster
+All yaml files were cloned from eks-nginx [repo](https://github.com/cohenaj194/eks-nginx.git)
 
-### 1. Create VPC using CloudFormation stack
+### 1. EKS cluster and deploy Nginx service
+
+- Create EKS Cluster
 ```
-aws cloudformation create-stack \
-  --region eu-west-1 \
-  --stack-name my-eks-vpc-stack \
-  --template-url https://amazon-eks.s3.us-west-2.amazonaws.com/cloudformation/2020-10-29/amazon-eks-vpc-private-subnets.yaml
+eksctl create cluster -f cluster.yaml
 ```
-
-### 2. Create IAM Role and cluster
 
 ```
-aws iam create-role \
-  --role-name myAmazonEKSClusterRole \
-  --assume-role-policy-document file://"cluster-role-trust-policy.json"
+kubectl get svc
+NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+kubernetes   ClusterIP   10.100.0.1   <none>        443/TCP   25m
+```
 
-aws iam attach-role-policy \
-  --policy-arn arn:aws:iam::aws:policy/AmazonEKSClusterPolicy \
-  --role-name myAmazonEKSClusterRole
+- Deploy Nginx service
 
+```
+kubectl apply -f ./run-my-nginx.yaml
+```
 
-aws eks update-kubeconfig --region eu-west-1 --name my-cluster
+- Check created pods, nodes, deployment, service
+```
+$ kubectl get deployment
+NAME       READY   UP-TO-DATE   AVAILABLE   AGE
+my-nginx   2/4     4            2           4m54s
 
+ kubectl get nodes
+NAME                                              STATUS   ROLES    AGE   VERSION
+ip-192-168-0-159.eu-central-1.compute.internal    Ready    <none>   13m   v1.22.9-eks-810597c
+ip-192-168-38-100.eu-central-1.compute.internal   Ready    <none>   13m   v1.22.9-eks-810597c
 
-  aws eks update-kubeconfig \
-    --region eu-west-1 \
-    --name my-eks-cluster \
-    --role-arn arn:aws:iam::356971723581:role/myAmazonEKSClusterRole
+kubectl get pods
+NAME                        READY   STATUS    RESTARTS   AGE
+my-nginx-5b56ccd65f-gwkwn   0/1     Pending   0          5m14s
+my-nginx-5b56ccd65f-k62jx   1/1     Running   0          5m14s
+my-nginx-5b56ccd65f-x5pjx   1/1     Running   0          5m14s
+my-nginx-5b56ccd65f-xgf4w   0/1     Pending   0          5m14s
+
+kubectl get pods -o wide
+NAME                        READY   STATUS    RESTARTS   AGE     IP               NODE                                             NOMINATED NODE   READINESS GATES
+my-nginx-5b56ccd65f-gwkwn   0/1     Pending   0          5m23s   <none>           <none>                                           <none>           <none>
+my-nginx-5b56ccd65f-k62jx   1/1     Running   0          5m23s   192.168.23.182   ip-192-168-0-159.eu-central-1.compute.internal   <none>           <none>
+my-nginx-5b56ccd65f-x5pjx   1/1     Running   0          5m23s   192.168.13.206   ip-192-168-0-159.eu-central-1.compute.internal   <none>           <none>
+my-nginx-5b56ccd65f-xgf4w   0/1     Pending   0          5m23s   <none>           <none>                                           <none>           <none>
+```
+
+### 2. Expose Nginx service
+Once it's connected to LB, then you will be able to access its Nginx service.
+
+```
+kubectl expose deployment/my-nginx \
+        --port=80 --target-port=80 \
+        --name=my-nginx-service --type=LoadBalancer
+```
+
+Check if Nginx service was created
+```
+kubectl get services
+NAME               TYPE           CLUSTER-IP       EXTERNAL-IP                                                                 PORT(S)        AGE
+kubernetes         ClusterIP      10.100.0.1       <none>                                                                      443/TCP        28m
+my-nginx-service   LoadBalancer   10.100.223.178   a305745700b094883bfe2281b974429a-411902197.eu-central-1.elb.amazonaws.com   80:30503/TCP   13s
 ```
