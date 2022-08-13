@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-origin
+  namespace: sandbox
+spec:
+  selector:
+    app: nginx-origin
+    env: sandbox
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer

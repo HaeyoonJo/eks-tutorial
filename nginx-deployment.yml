@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-origin
+  namespace: sandbox
+spec:
+  selector:
+    matchLabels:
+      run: nginx-origin
+      env: sandbox
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: nginx-origin
+        env: sandbox
+    spec:
+      containers:
+      - name: nginx-origin
+        image: nginx
+        ports:
+        - containerPort: 80
