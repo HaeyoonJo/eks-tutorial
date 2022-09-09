@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pyredis-app
+  namespace: pyredis
+  labels:
+    app: pyredis-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pyredis-app
+  template:
+    metadata:
+      labels:
+        app: pyredis-app
+    spec:
+      containers:
+      - name: redis-db
+        image: 894582453889.dkr.ecr.eu-west-1.amazonaws.com/devops-test-redis:latest
+        ports:
+        # - name: redis
+        - containerPort: 6379
+      - name: my-web
+        image: 894582453889.dkr.ecr.eu-west-1.amazonaws.com/devops-test-web:latest
+        env:
+          - name: REDIS_HOST
+            value: localhost
+        ports:
+        - name: http
+          containerPort: 5000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pyredis-app
+  namespace: pyredis
+  labels:
+    app: pyredis-app
+spec:
+  selector:
+    app: pyredis-app
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+  type: LoadBalancer
