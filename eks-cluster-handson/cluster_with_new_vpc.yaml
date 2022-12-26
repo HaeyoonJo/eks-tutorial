@@ -1,0 +1,38 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: eks-cluster
+  region: eu-west-1
+  version: "1.20"
+
+vpc:
+  id: "vpc-xxxxxxxxxx"
+  subnets:
+    public:
+      eu-west-1a:
+        id: "subnet-xxxxx"
+      eu-west-1b:
+        id: "subnet-xxxxx"
+
+# managedNodeGroups:
+#   - name: acme-test-cluster
+#     minSize: 3
+#     maxSize: 7
+#     desiredCapacity: 3
+#     instanceType: m5.2xlarge
+
+nodeGroups:
+  - name: nginx-test
+    iam:
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+    instanceType: m5.2xlarge
+    desiredCapacity: 1
+    privateNetworking: false
+    ssh:
+      allow: true
+      publicKeyName: keypair-test
